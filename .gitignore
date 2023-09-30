@@ -166,3 +166,5 @@ cython_debug/
 # My files
 10s090w_20101117_gmted_mea075.tif
 
+scripts/venv
+scripts/cache
