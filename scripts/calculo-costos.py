@@ -122,7 +122,7 @@ b_0 = 5476066477
 angle_0 = angles[(a_0, b_0)]
 
 # Total energy between the nodes
-energy_0 = energy_between_a_b(a_0, b_0, angles, distances, information)
+energy_0 = energy_between_a_b(angles[(a_0, b_0)], distances[(a_0, b_0)], information)
 
 # Distance between the nodes
 distance_0 = distances[(a_0, b_0)]
@@ -137,7 +137,7 @@ a_max, b_max = max(angles, key=angles.get)
 angle_max = angles[(a_max, b_max)]
 
 # Total energy between the nodes
-energy_max = energy_between_a_b(a_max, b_max, angles, distances, information)
+energy_max = energy_between_a_b(angles[(a_max, b_max)], distances[(a_max, b_max)], information)
 
 # Distance between the nodes
 distance_max = distances[(a_max, b_max)]
@@ -152,7 +152,7 @@ a_min, b_min = min(angles, key=angles.get)
 angle_min = angles[(a_min, b_min)]
 
 # Total energy between the nodes
-energy_min = energy_between_a_b(a_min, b_min, angles, distances, information)
+energy_min = energy_between_a_b(angles[(a_min, b_min)], distances[(a_min, b_min)], information)
 
 # Distance between the nodes
 distance_min = distances[(a_min, b_min)]
@@ -178,7 +178,7 @@ angles[(a_0, b_0)] = -angles[(a_0, b_0)]
 angle_0 = angles[(a_0, b_0)]
 
 # Total energy between the nodes
-energy_0 = energy_between_a_b(a_0, b_0, angles, distances, information)
+energy_0 = energy_between_a_b(angles[(a_0, b_0)], distances[(a_0, b_0)], information)
 
 # Distance between the nodes
 distance_0 = distances[(a_0, b_0)]
@@ -195,7 +195,7 @@ angles[(a_max, b_max)] = -angles[(a_max, b_max)]
 angle_max = angles[(a_max, b_max)]
 
 # Total energy between the nodes
-energy_max = energy_between_a_b(a_max, b_max, angles, distances, information)
+energy_max = energy_between_a_b(angles[(a_max, b_max)], distances[(a_max, b_max)], information)
 
 # Distance between the nodes
 distance_max = distances[(a_max, b_max)]
@@ -213,7 +213,7 @@ angles[(a_min, b_min)] = -angles[(a_min, b_min)]
 angle_min = angles[(a_min, b_min)]
 
 # Total energy between the nodes
-energy_min = energy_between_a_b(a_min, b_min, angles, distances, information)
+energy_min = energy_between_a_b(angles[(a_min, b_min)], distances[(a_min, b_min)], information)
 
 # Distance between the nodes
 distance_min = distances[(a_min, b_min)]
@@ -233,7 +233,7 @@ print('{:<18} {:<20} {:<28} {:<28}'.format(angle_min, distance_min, energy_min, 
 # Calculate edge costs
 cost_graph = dict()
 for u, v, k, data in G.edges(keys=True, data=True):
-    cost_graph[(u, v)] = energy_between_a_b(u, v, angles, distances, information)
+    cost_graph[(u, v)] = energy_between_a_b(angles[(u, v)], distances[(u, v)], information)
     if angles[(u, v)] >= 0 > cost_graph[(u, v)]:
         print("################## Warning ##################")
         print(angles[(u, v)], distances[(u, v)], cost_graph[(u, v)])
@@ -297,7 +297,7 @@ def bellman_ford(graph, start_node, end_node, distances):
     return shortest_path, min_distance
 
 
-def create_dist_distances(G, lugares_dentro_grafo, distances, information):
+def create_dist_distances(lugares_dentro_grafo, distances):
     dict_cost_matrix = dict()
     dict_paths = dict()
     values = lugares_dentro_grafo.values()
@@ -319,14 +319,14 @@ def create_dist_distances(G, lugares_dentro_grafo, distances, information):
     return dict_cost_matrix, dict_paths
 
 
-dict_cost_matrix, dict_paths = create_dist_distances(G, places_within_graph, distances, information)
+dict_cost_matrix, dict_paths = create_dist_distances(places_within_graph, distances)
 
 
 # ## Compare the min distance path and the min cost path
 def path_cost(path, distances, information):
     cost = 0
     for i in range(1, len(path)):
-        cost += energy_between_a_b(path[i-1], path[i], angles, distances, information)
+        cost += energy_between_a_b(angles[(path[i-1], path[i])], distances[(path[i-1], path[i])], information)
 
     return cost
 
@@ -361,7 +361,9 @@ elevations_min_distance = []
 distances_min_distance = [0]
 for i in range(1, len(min_distance_path)):
     elevations_min_distance.append(G.nodes[min_distance_path[i]]['elevation'])
-    distances_min_distance.append(distances_min_distance[-1] + distances[(min_distance_path[i-1], min_distance_path[i])])
+    distances_min_distance.append(
+        distances_min_distance[-1] + distances[(min_distance_path[i-1], min_distance_path[i])]
+    )
 
 distances_min_distance.pop()
 

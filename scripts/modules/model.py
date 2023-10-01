@@ -33,14 +33,13 @@ def eta_deceleration(mechanical_energy, information):
 # ## Model Equations
 # Refer to section 3.4 of the base article.
 
-def alpha_acceleration(a, b, angles, information, distance_acceleration=None):
+def alpha_acceleration(angle, information, distance_acceleration=None):
     if distance_acceleration is not None:
         d_a = distance_acceleration
     else:
         d_a = information['d_acceleration']
     acc = information['acceleration']
     g = information['g']
-    angle = angles[(a, b)]
     C_r = information['C_r']
 
     alph_acceleration = (d_a * (
@@ -49,9 +48,9 @@ def alpha_acceleration(a, b, angles, information, distance_acceleration=None):
     return alph_acceleration
 
 
-def alpha_constant(a, b, angles, distances, information, distance_acceleration=None, distance_deceleration=None):
+def alpha_constant(angle, distance, information, distance_acceleration=None, distance_deceleration=None):
     g = information['g']
-    d_ab = distances[(a, b)]
+    d_ab = distance
     if distance_acceleration is not None:
         d_a = distance_acceleration
     else:
@@ -60,7 +59,6 @@ def alpha_constant(a, b, angles, distances, information, distance_acceleration=N
         d_d = distance_deceleration
     else:
         d_d = information['d_deceleration']
-    angle = angles[(a, b)]
     C_r = information['C_r']
 
     alph_constant = (g * (d_ab - d_a - d_d) * (
@@ -69,14 +67,13 @@ def alpha_constant(a, b, angles, distances, information, distance_acceleration=N
     return alph_constant
 
 
-def alpha_deceleration(a, b, angles, information, distance_deceleration=None):
+def alpha_deceleration(angle, information, distance_deceleration=None):
     if distance_deceleration is not None:
         d_d = distance_deceleration
     else:
         d_d = information['d_deceleration']
     decc = information['deceleration']
     g = information['g']
-    angle = angles[(a, b)]
     C_r = information['C_r']
 
     alph_deceleration = (d_d * (
@@ -103,10 +100,10 @@ def beta_acceleration(information, distance_acceleration=None, target_speed=None
     return beth_acceleration
 
 
-def beta_constant(a, b, distances, information, distance_acceleration=None, distance_deceleration=None,
+def beta_constant(distance, information, distance_acceleration=None, distance_deceleration=None,
                   target_speed=None):
     R = information['R']
-    d_ab = distances[(a, b)]
+    d_ab = distance
     if distance_acceleration is not None:
         d_a = distance_acceleration
     else:
@@ -157,8 +154,8 @@ def beta_deceleration(information, distance_deceleration=None, target_speed=None
 #     return beta
 
 
-def acceleration_func(a, b, angles, information, distance_acceleration=None, target_speed=None):
-    alpha = alpha_acceleration(a, b, angles, information, distance_acceleration)  # Estimation without energy efficiency
+def acceleration_func(angle, information, distance_acceleration=None, target_speed=None):
+    alpha = alpha_acceleration(angle, information, distance_acceleration)  # Estimation without energy efficiency
     beta = beta_acceleration(information, distance_acceleration, target_speed)  # Estimation without energy efficiency
     mechanical_energy = alpha * information['m'] + beta
     eta = eta_acceleration(mechanical_energy, information)
@@ -166,11 +163,11 @@ def acceleration_func(a, b, angles, information, distance_acceleration=None, tar
     return energy_acceleration
 
 
-def constant_func(a, b, angles, distances, information, distance_acceleration=None, distance_deceleration=None,
+def constant_func(angle, distance, information, distance_acceleration=None, distance_deceleration=None,
                   target_speed=None):
-    alpha = alpha_constant(a, b, angles, distances, information, distance_acceleration,
+    alpha = alpha_constant(angle, distance, information, distance_acceleration,
                            distance_deceleration)  # Estimation without energy efficiency
-    beta = beta_constant(a, b, distances, information, distance_acceleration, distance_deceleration,
+    beta = beta_constant(distance, information, distance_acceleration, distance_deceleration,
                          target_speed)  # Estimation without energy efficiency
     mechanical_energy = alpha * information['m'] + beta
     eta = eta_constant(mechanical_energy, information)
@@ -178,8 +175,8 @@ def constant_func(a, b, angles, distances, information, distance_acceleration=No
     return energy_constant
 
 
-def deceleration_func(a, b, angles, information, distance_deceleration=None, target_speed=None):
-    alpha = alpha_deceleration(a, b, angles, information, distance_deceleration)  # Energy estimation without efficiency
+def deceleration_func(angle, information, distance_deceleration=None, target_speed=None):
+    alpha = alpha_deceleration(angle, information, distance_deceleration)  # Energy estimation without efficiency
     beta = beta_deceleration(information, distance_deceleration, target_speed)  # Energy estimation without efficiency
     mechanical_energy = alpha * information['m'] + beta
     eta = eta_deceleration(mechanical_energy, information)
@@ -187,9 +184,9 @@ def deceleration_func(a, b, angles, information, distance_deceleration=None, tar
     return energy_deceleration
 
 
-def verify_distances(a, b, distances, information):
-    if information['d_acceleration'] + information['d_deceleration'] > distances[(a, b)]:
-        distance_deceleration = distances[(a, b)] / (1 + information['k'])
+def verify_distances(distance, information):
+    if information['d_acceleration'] + information['d_deceleration'] > distance:
+        distance_deceleration = distance / (1 + information['k'])
         distance_acceleration = information['k'] * distance_deceleration
 
         target_speed = math.sqrt(information['v_i'] ** 2 + 2 * information['acceleration'] * distance_acceleration)
@@ -199,21 +196,21 @@ def verify_distances(a, b, distances, information):
     return None, None, None, False
 
 
-def energy_between_a_b(a, b, angles, distances, information):
+def energy_between_a_b(angle, distance, information):
     # energy = alpha_a_b(a, b, angles, information)*information['m'] + beta_a_b(a, b,
     #                angles, information)
 
-    distance_acceleration, distance_deceleration, target_speed, recalculated_distances = verify_distances(a, b,
-                                                                                                          distances,
-                                                                                                          information)
+    distance_acceleration, distance_deceleration, target_speed, recalculated_distances = verify_distances(
+        distance, information
+    )
 
     energy = acceleration_func(
-        a, b, angles, information, distance_acceleration=distance_acceleration, target_speed=target_speed
+        angle, information, distance_acceleration=distance_acceleration, target_speed=target_speed
     ) + constant_func(
-        a, b, angles, distances, information, distance_acceleration=distance_acceleration,
+        angle, distance, information, distance_acceleration=distance_acceleration,
         distance_deceleration=distance_deceleration, target_speed=target_speed
     ) + deceleration_func(
-        a, b, angles, information, distance_deceleration=distance_deceleration, target_speed=target_speed
+        angle, information, distance_deceleration=distance_deceleration, target_speed=target_speed
     )
 
     return energy
