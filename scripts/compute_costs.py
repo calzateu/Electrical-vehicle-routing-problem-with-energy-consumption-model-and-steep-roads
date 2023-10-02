@@ -2,23 +2,15 @@ import osmnx as ox
 import json
 import matplotlib.pyplot as plt
 
+from modules.graphics import plot_places
 from modules.model import *
+from modules.costs_and_paths import *
 
 # Load extracted data
-G = ox.load_graphml('el_poblado_graph.graphml')
+graph = ox.load_graphml('el_poblado_graph.graphml')
 
-# Calculate elevation angles between nodes and save distances
-angles = dict()
-distances = dict()
-for u, v, k, data in G.edges(keys=True, data=True):
-    start_elev = G.nodes[u]['elevation']
-    end_elev = G.nodes[v]['elevation']
-    length = data['length']
-    distances[(u, v)] = length
-    elevation = data['elevation']
-    angle = math.atan2(end_elev - start_elev, length)
-    angle = math.degrees(angle)
-    angles[(u, v)] = angle
+# Get elevation angles and distances between nodes
+angles, distances = get_graph_information(graph)
 
 # Points of interest
 # El tesoro
@@ -44,13 +36,7 @@ polygon_places = {
 
 # Data Exploration
 # El Poblado Graph
-fig, ax = ox.plot_graph(G, edge_color="#FFFF5C", edge_linewidth=0.25, node_color='red', show=False)
-
-# Graph with points of interest in blue color
-points = [tuple(coord) for coord in polygon_places.values()]
-x, y = zip(*points)
-ax.scatter(y, x, c='blue', marker='o')  # Change 'blue' to the desired color
-plt.show()
+plot_places(graph, polygon_places)
 
 # Problem Preparation
 # Within the graph, find the nearest node to the actual location of our places
@@ -60,7 +46,7 @@ places_within_graph = {}
 for key in polygon_places.keys():
     # Nearest node to the coordinate
     coord = polygon_places[key]
-    node, dist = ox.nearest_nodes(G, X=coord[1], Y=coord[0], return_dist=True)
+    node, dist = ox.nearest_nodes(graph, X=coord[1], Y=coord[0], return_dist=True)
 
     # Verify if the node is near the point
     if dist <= threshold:
@@ -76,7 +62,7 @@ print(places_within_graph)
 los_balsos = places_within_graph['Complex Los Balsos']
 euro = places_within_graph['Euro Supermercados La Inferior']
 print("########### Shortest path between Complex Los Balsos and Euro Supermercados La Inferior ###########")
-print(ox.shortest_path(G, los_balsos[0], euro[0]))
+print(ox.shortest_path(graph, los_balsos[0], euro[0]))
 
 
 # The following parameters are based on the article, except for the efficiency information.
@@ -118,47 +104,23 @@ information = initialize_information(v_i, v_f, v_ab, acceleration, deceleration,
 a_0 = 3791874410
 b_0 = 5476066477
 
-# Angle between the nodes
-angle_0 = angles[(a_0, b_0)]
-
-# Total energy between the nodes
-energy_0 = energy_between_a_b(angles[(a_0, b_0)], distances[(a_0, b_0)], information)
-
-# Distance between the nodes
-distance_0 = distances[(a_0, b_0)]
-
-# Energy per meter traveled
-energy_per_meter_0 = energy_0 / distance_0
+angle_0, distance_0, energy_0, energy_per_meter_0 = energy_distance_and_energy_per_meter(
+    a_0, b_0, angles, distances, information
+)
 
 # ### Energy consumption between the two nodes with the highest elevation angle (71.57°)
 a_max, b_max = max(angles, key=angles.get)
 
-# Angle between the nodes
-angle_max = angles[(a_max, b_max)]
-
-# Total energy between the nodes
-energy_max = energy_between_a_b(angles[(a_max, b_max)], distances[(a_max, b_max)], information)
-
-# Distance between the nodes
-distance_max = distances[(a_max, b_max)]
-
-# Energy per meter traveled
-energy_per_meter_max = energy_max / distance_max
+angle_max, distance_max, energy_max, energy_per_meter_max = energy_distance_and_energy_per_meter(
+    a_max, b_max, angles, distances, information
+)
 
 # ## Energy consumption between the two nodes with the lowest elevation angle (-63.28°)
 a_min, b_min = min(angles, key=angles.get)
 
-# Angle between the nodes
-angle_min = angles[(a_min, b_min)]
-
-# Total energy between the nodes
-energy_min = energy_between_a_b(angles[(a_min, b_min)], distances[(a_min, b_min)], information)
-
-# Distance between the nodes
-distance_min = distances[(a_min, b_min)]
-
-# Energy per meter traveled
-energy_per_meter_min = energy_min / distance_min
+angle_min, distance_min, energy_min, energy_per_meter_min = energy_distance_and_energy_per_meter(
+    a_min, b_min, angles, distances, information
+)
 
 # ## Comparison of results
 print('{:<18} {:<20} {:<28} {:<28}'.format('Angle', 'Distance', 'Energy Consumed', 'Energy per Meter'))
@@ -173,54 +135,27 @@ print('{:<18} {:<20} {:<28} {:<28}'.format(angle_min, distance_min, energy_min, 
 a_0 = 3791874410
 b_0 = 5476066477
 
-# Angle between the nodes
 angles[(a_0, b_0)] = -angles[(a_0, b_0)]
-angle_0 = angles[(a_0, b_0)]
-
-# Total energy between the nodes
-energy_0 = energy_between_a_b(angles[(a_0, b_0)], distances[(a_0, b_0)], information)
-
-# Distance between the nodes
-distance_0 = distances[(a_0, b_0)]
-
-# Energy per meter traveled
-energy_per_meter_0 = energy_0 / distance_0
-
+angle_0, distance_0, energy_0, energy_per_meter_0 = energy_distance_and_energy_per_meter(
+    a_0, b_0, angles, distances, information
+)
 
 # ### Energy Consumption Between the Two Nodes with the Highest Elevation Angle (71.57°)
 a_max, b_max = max(angles, key=angles.get)
 
-# Angle between the nodes
 angles[(a_max, b_max)] = -angles[(a_max, b_max)]
-angle_max = angles[(a_max, b_max)]
-
-# Total energy between the nodes
-energy_max = energy_between_a_b(angles[(a_max, b_max)], distances[(a_max, b_max)], information)
-
-# Distance between the nodes
-distance_max = distances[(a_max, b_max)]
-
-# Energy per meter traveled
-energy_per_meter_max = energy_max / distance_max
-
+angle_max, distance_max, energy_max, energy_per_meter_max = energy_distance_and_energy_per_meter(
+    a_max, b_max, angles, distances, information
+)
 angles[(a_max, b_max)] = -angles[(a_max, b_max)]
 
 # ## Energy Consumption Between the Two Nodes with the Lowest Elevation Angle (-63.28°)
 a_min, b_min = min(angles, key=angles.get)
 
-# Angle between the nodes
 angles[(a_min, b_min)] = -angles[(a_min, b_min)]
-angle_min = angles[(a_min, b_min)]
-
-# Total energy between the nodes
-energy_min = energy_between_a_b(angles[(a_min, b_min)], distances[(a_min, b_min)], information)
-
-# Distance between the nodes
-distance_min = distances[(a_min, b_min)]
-
-# Energy per meter traveled
-energy_per_meter_min = energy_min / distance_min
-
+angle_min, distance_min, energy_min, energy_per_meter_min = energy_distance_and_energy_per_meter(
+    a_min, b_min, angles, distances, information
+)
 angles[(a_min, b_min)] = -angles[(a_min, b_min)]
 
 # ## Comparison of Results
@@ -232,7 +167,7 @@ print('{:<18} {:<20} {:<28} {:<28}'.format(angle_min, distance_min, energy_min, 
 # # Create Cost Graph to Travel from One Point of Interest to Another
 # Calculate edge costs
 cost_graph = dict()
-for u, v, k, data in G.edges(keys=True, data=True):
+for u, v, k, data in graph.edges(keys=True, data=True):
     cost_graph[(u, v)] = energy_between_a_b(angles[(u, v)], distances[(u, v)], information)
     if angles[(u, v)] >= 0 > cost_graph[(u, v)]:
         print("################## Warning ##################")
@@ -243,7 +178,7 @@ def analyze_problem(path, distances):
     elevations = []
     distances_path = [0]
     for i in range(1, len(path)):
-        elevations.append(G.nodes[path[i]]['elevation'])
+        elevations.append(graph.nodes[path[i]]['elevation'])
         distances_path.append(distances_path[-1] + distances[(path[i - 1], path[i])])
 
     distances_path.pop()
@@ -348,8 +283,8 @@ def select_minimum_path(paths, distances, information):
 place1 = places_within_graph['Euro Supermercados La Inferior']
 place2 = places_within_graph['Complex Los Balsos']
 
-paths = ox.k_shortest_paths(G, place1[0], place2[0], 10)
-min_distance_path = ox.shortest_path(G, place1[0], place2[0])
+paths = ox.k_shortest_paths(graph, place1[0], place2[0], 10)
+min_distance_path = ox.shortest_path(graph, place1[0], place2[0])
 
 print("Minimum Distance Path", path_cost(min_distance_path, distances, information))
 
@@ -360,7 +295,7 @@ print("Cost", cost)
 elevations_min_distance = []
 distances_min_distance = [0]
 for i in range(1, len(min_distance_path)):
-    elevations_min_distance.append(G.nodes[min_distance_path[i]]['elevation'])
+    elevations_min_distance.append(graph.nodes[min_distance_path[i]]['elevation'])
     distances_min_distance.append(
         distances_min_distance[-1] + distances[(min_distance_path[i-1], min_distance_path[i])]
     )
@@ -370,7 +305,7 @@ distances_min_distance.pop()
 elevations_min_cost = []
 distances_min_cost = [0]
 for i in range(1, len(path)):
-    elevations_min_cost.append(G.nodes[path[i]]['elevation'])
+    elevations_min_cost.append(graph.nodes[path[i]]['elevation'])
     distances_min_cost.append(distances_min_cost[-1] + distances[(path[i-1], path[i])])
 
 distances_min_cost.pop()

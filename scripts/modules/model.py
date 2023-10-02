@@ -216,6 +216,17 @@ def energy_between_a_b(angle, distance, information):
     return energy
 
 
+def energy_distance_and_energy_per_meter(a, b, angles, distances, information):
+    angle = angles[(a, b)]
+    distance = distances[(a, b)]
+
+    energy = energy_between_a_b(angle, distance, information)
+
+    energy_per_meter = energy / distance
+
+    return angle, distance, energy, energy_per_meter
+
+
 # ## Initialize Parameters
 def initialize_information(v_i, v_f, v_ab, acceleration, deceleration, m, C_r, C_d,
                            A, rho, g, eta_acceleration_positive, eta_acceleration_negative,
