@@ -5,6 +5,8 @@ from modules.model import *
 from modules.costs_and_paths import *
 from modules.graph_operations import *
 
+import constants
+
 # Load extracted data
 graph = ox.load_graphml('el_poblado_graph.graphml')
 
@@ -38,7 +40,7 @@ polygon_places = {
 plot_places(graph, polygon_places)
 
 # Problem Preparation
-# Within the graph, find the nearest node to the actual location of our places
+# Within the graph, find the nearest node to the actual location of our places.
 threshold = 50  # in meters, maximum allowed distance
 places_within_graph = search_places_inside_graph(places=polygon_places, graph=graph, threshold=threshold)
 
@@ -49,42 +51,12 @@ print("########### Shortest path between Complex Los Balsos and Euro Supermercad
 print(ox.shortest_path(graph, los_balsos[0], euro[0]))
 
 
-# The following parameters are based on the article, except for the efficiency information.
-# Problem and vehicle parameters
-v_i = 0
-v_f = 0
-C_r = 0.0064
-C_d = 0.7
-A = 8.0
-rho = 1.2
-g = 9.81
-
-# Input parameters
-v_ab = 6  # Desired speed per segment
-m = 1000
-acceleration = 0.8  # From the paper
-deceleration = -0.9  # From the paper
-# deceleration = -0.8  # My own
-
-
-# Efficiency information. Search references or make a regression analysis (as they did)
-eta_acceleration_positive = 0.8
-eta_acceleration_negative = 1.9  # Critical point 1.8
-eta_constant_positive = 0.8
-eta_constant_negative = 1.9
-eta_deceleration_positive = 0.8
-eta_deceleration_negative = 1.9
-
-information = initialize_information(v_i, v_f, v_ab, acceleration, deceleration,
-                                     m, C_r, C_d, A, rho, g, eta_acceleration_positive,
-                                     eta_acceleration_negative, eta_constant_positive,
-                                     eta_constant_negative, eta_deceleration_positive,
-                                     eta_deceleration_negative)
+information = constants.constants_dict.copy()
 
 # # Comparison of energy consumption between different points with different angles
 
 # ## Energy consumption between two nodes with an angle of 0
-# Two arbitrary nodes
+# Two arbitrary nodes.
 a_0 = 3791874410
 b_0 = 5476066477
 
@@ -115,7 +87,7 @@ print('{:<18} {:<20} {:<28} {:<28}'.format(angle_min, distance_min, energy_min, 
 # # Comparison of Energy Consumption Between Different Points with Different Angles
 
 # ## Energy Consumption Between Two Nodes with 0° Angle
-# Two arbitrary nodes
+# Two arbitrary nodes.
 a_0 = 3791874410
 b_0 = 5476066477
 
@@ -149,14 +121,14 @@ print('{:<18} {:<20} {:<28} {:<28}'.format(angle_max, distance_max, energy_max, 
 print('{:<18} {:<20} {:<28} {:<28}'.format(angle_min, distance_min, energy_min, energy_per_meter_min))
 
 # # Create Cost Graph to Travel from One Point to Another
-# Calculate edge costs
+# Calculate edge costs.
 cost_graph = create_cost_graph(graph=graph, angles=angles, distances=distances, information=information)
 
 
 customer_graph, customer_graph_paths = create_customer_graph(places_within_graph, distances, cost_graph)
 
 
-# ## Compare the min distance path and the min cost path
+# ## Compare the min distance path and the min cost path.
 place1 = places_within_graph['Euro Supermercados La Inferior']
 place2 = places_within_graph['Complex Los Balsos']
 
@@ -204,7 +176,7 @@ print("Distance of the minimum distance route", total_distance_min_distance)
 print("Distance of the minimum cost route", total_distance_min_cost)
 
 # Saving cost graph
-# It is necessary because to save the dictionaries in JSON, we have to have keys in string format
+# It is necessary because to save the dictionaries in JSON, we have to have keys in string format.
 customer_graph_output = dict((str(k), v) for k, v in customer_graph.items())
 customer_graph_paths_output = dict((str(k), v) for k, v in customer_graph_paths.items())
 cost_graph_output = dict((str(k), v) for k, v in cost_graph.items())
