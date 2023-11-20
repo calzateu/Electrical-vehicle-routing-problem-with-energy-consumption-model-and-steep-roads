@@ -33,6 +33,9 @@ class ConstructiveMethod4:
         for i in range(len(distances)):
             metrics[i] = distances[i] / max_distance - (self.dist_matrix[i][0] / max_distance) * (
                     capacity / self.capacity_of_vehicles)
+            # metrics[i] = distances[i] / max_distance + (self.dist_matrix[i][0] / max_distance) * (
+            #        capacity / self.capacity_of_vehicles)
+            #metrics[i] = distances[i]
 
         for i in range(len(demands)):
             if not self.visited_nodes[i] and capacity >= demands[i]:

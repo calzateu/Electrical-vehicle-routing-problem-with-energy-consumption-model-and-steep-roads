@@ -1,14 +1,14 @@
 import json
-import osmnx as ox
 import ast
-import numpy as np
 
 from modules.cost_matrix_operations import *
 from modules.data import Data
 from modules.constructive4 import ConstructiveMethod4
 from modules.costs_and_paths import *
+from modules.heuristic_tools import *
 
 import constants
+
 
 with open("polygon_places.json", "r") as infile:
     polygon_places = json.load(infile)
@@ -48,22 +48,12 @@ capacity_of_vehicles = 1000
 max_energy = 10000
 demands = [0, 200, 300, 600, 450, 400, 650]
 
-dist_matrix = np.zeros((number_of_nodes, number_of_nodes))
-node_to_index = dict()
-for i, node1 in enumerate(nodes):
-    for j, node2 in enumerate(nodes):
-        if node1 != node2:
-            dist_matrix[i, j] = customer_graph[(node1, node2)]
+dist_matrix, node_to_index = build_dist_matrix(nodes, number_of_nodes, customer_graph)
 
-    node_to_index[i] = node1
+print(dist_matrix)
 
 data = Data(number_of_nodes, number_of_vehicles, capacity_of_vehicles, max_energy, dist_matrix,
             demands.copy(), last_two_elements, node_to_index, angles, distances, information.copy())
-
-# place_and_demand = dict()
-# for key, value in places_within_graph.items():
-#    place_and_demand[value[0]] = demands.pop()
-
 
 # constructive = ConstructiveMethod3(data)
 constructive = ConstructiveMethod4(data)
@@ -73,43 +63,15 @@ paths = constructive.search_paths()
 print(paths)
 print()
 
-for path in paths:
-    original_path = []
-    for i in range(len(path) - 1):
-        nodes_temp = customer_graph_paths[(node_to_index[path[i]], node_to_index[path[i + 1]])]
-        original_path.extend(nodes_temp[:-1])
-
-    print(path_cost(original_path, angles, distances, information))
+print_paths_cost(paths, customer_graph_paths, node_to_index, angles, distances, information)
 
 print()
 
-customer_graph_distances = dict()
-customer_graph_paths_distances = dict()
-for node1 in nodes:
-    for node2 in nodes:
-        if node1 != node2:
-            path_temp = ox.shortest_path(graph, node1, node2)
-            customer_graph_paths_distances[(node1, node2)] = path_temp
-            distance = 0
-            for i in range(len(path_temp) - 1):
-                distance += distances[(path_temp[i], path_temp[i + 1])]
-
-            customer_graph_distances[(node1, node2)] = distance
-
-        else:
-            customer_graph_paths_distances[(node1, node2)] = [node1]
-            customer_graph_distances[(node1, node2)] = 0
+customer_graph_distances, customer_graph_paths_distances = build_customer_graph_distances(graph, nodes, distances)
 
 print(customer_graph_distances)
 
-dist_matrix = np.zeros((number_of_nodes, number_of_nodes))
-node_to_index = dict()
-for i, node1 in enumerate(nodes):
-    for j, node2 in enumerate(nodes):
-        if node1 != node2:
-            dist_matrix[i, j] = customer_graph_distances[(node1, node2)]
-
-    node_to_index[i] = node1
+dist_matrix, node_to_index = build_dist_matrix(nodes, number_of_nodes, customer_graph_distances)
 
 print(dist_matrix)
 
@@ -123,10 +85,4 @@ paths = constructive.search_paths()
 print(paths)
 print()
 
-for path in paths:
-    original_path = []
-    for i in range(len(path) - 1):
-        nodes_temp = customer_graph_paths_distances[(node_to_index[path[i]], node_to_index[path[i + 1]])]
-        original_path.extend(nodes_temp[:-1])
-
-    print(path_cost(original_path, angles, distances, information))
+print_paths_cost(paths, customer_graph_paths, node_to_index, angles, distances, information)
