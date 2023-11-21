@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 class Data:
     def __init__(self, number_of_nodes, number_of_vehicles, capacity_of_vehicles,
                  max_energy, dist_matrix, demands, reference_nodes, node_to_index,

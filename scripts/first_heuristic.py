@@ -2,8 +2,6 @@ import json
 import ast
 
 from modules.cost_matrix_operations import *
-from modules.data import Data
-from modules.constructive4 import ConstructiveMethod4
 from modules.costs_and_paths import *
 from modules.heuristic_tools import *
 
@@ -48,41 +46,13 @@ capacity_of_vehicles = 1000
 max_energy = 10000
 demands = [0, 200, 300, 600, 450, 400, 650]
 
-dist_matrix, node_to_index = build_dist_matrix(nodes, number_of_nodes, customer_graph)
+# Iteración 1
+find_paths(nodes, number_of_nodes, customer_graph, number_of_vehicles, capacity_of_vehicles, max_energy,
+           demands, last_two_elements, angles, distances, information, customer_graph_paths)
 
-print(dist_matrix)
-
-data = Data(number_of_nodes, number_of_vehicles, capacity_of_vehicles, max_energy, dist_matrix,
-            demands.copy(), last_two_elements, node_to_index, angles, distances, information.copy())
-
-# constructive = ConstructiveMethod3(data)
-constructive = ConstructiveMethod4(data)
-
-paths = constructive.search_paths()
-
-print(paths)
-print()
-
-print_paths_cost(paths, customer_graph_paths, node_to_index, angles, distances, information)
-
-print()
-
+# Iteración 2
 customer_graph_distances, customer_graph_paths_distances = build_customer_graph_distances(graph, nodes, distances)
 
-print(customer_graph_distances)
-
-dist_matrix, node_to_index = build_dist_matrix(nodes, number_of_nodes, customer_graph_distances)
-
-print(dist_matrix)
-
-data = Data(number_of_nodes, number_of_vehicles, capacity_of_vehicles, max_energy, dist_matrix,
-            demands.copy(), last_two_elements, node_to_index, angles, distances, information.copy())
-
-constructive = ConstructiveMethod4(data)
-
-paths = constructive.search_paths()
-
-print(paths)
-print()
-
-print_paths_cost(paths, customer_graph_paths, node_to_index, angles, distances, information)
+find_paths(nodes, number_of_nodes, customer_graph_distances, number_of_vehicles, capacity_of_vehicles, max_energy,
+           demands, last_two_elements, angles, distances, information, customer_graph_paths_distances,
+           customer_graph_paths_reference=customer_graph_paths)

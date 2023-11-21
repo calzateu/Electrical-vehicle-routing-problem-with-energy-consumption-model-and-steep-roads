@@ -2,6 +2,8 @@ import numpy as np
 import osmnx as ox
 
 from .costs_and_paths import path_cost
+from .data import Data
+from .constructive4 import ConstructiveMethod4
 
 
 def build_dist_matrix(nodes, number_of_nodes, customer_graph):
@@ -49,3 +51,31 @@ def build_customer_graph_distances(graph, nodes, distances):
                 customer_graph_distances[(node1, node2)] = 0
 
     return customer_graph_distances, customer_graph_paths_distances
+
+
+def find_paths(nodes, number_of_nodes, customer_graph, number_of_vehicles, capacity_of_vehicles,
+               max_energy, demands, reference_elements, angles, distances, information, customer_graph_paths,
+               **kwargs):
+    """"""
+    dist_matrix, node_to_index = build_dist_matrix(nodes, number_of_nodes, customer_graph)
+
+    print(dist_matrix)
+
+    data = Data(number_of_nodes, number_of_vehicles, capacity_of_vehicles, max_energy, dist_matrix,
+                demands.copy(), reference_elements, node_to_index, angles, distances, information.copy())
+
+    # constructive = ConstructiveMethod3(data)
+    constructive = ConstructiveMethod4(data)
+
+    paths = constructive.search_paths()
+
+    print(paths)
+    print()
+
+    comparative_customer_graph_paths = customer_graph_paths
+    if kwargs.get("customer_graph_paths_reference", 0) != 0:
+        comparative_customer_graph_paths = kwargs["customer_graph_paths_reference"]
+
+    print_paths_cost(paths, comparative_customer_graph_paths, node_to_index, angles, distances, information)
+
+    print()
