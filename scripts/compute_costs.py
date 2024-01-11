@@ -1,4 +1,5 @@
 import json
+import matplotlib.pyplot as plt
 
 from modules.graphics import plot_places
 from modules.model import *

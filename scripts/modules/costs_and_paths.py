@@ -58,7 +58,7 @@ def analyze_problem(graph, path, distances):
 
 
 def bellman_ford(cost_graph, start_node, end_node, distances):
-    # Extract nodes from edge keys and initialize them with zero weight
+    # Extract nodes from edge keys and initialize them with zero weight.
     nodes = set()
     for edge in cost_graph.keys():
         source, destination = edge
@@ -71,7 +71,7 @@ def bellman_ford(cost_graph, start_node, end_node, distances):
     distances_bellman[start_node] = 0
     paths[start_node] = [start_node]
 
-    # Relax the edges V-1 times (V is the number of nodes)
+    # Relax the edges V-1 times (V is the total of nodes)
     num_nodes = len(set(edge for edge, _ in cost_graph.items()))
     for _ in range(num_nodes - 1):
         for edge, weight in cost_graph.items():
@@ -124,10 +124,15 @@ def create_customer_graph(places_within_graph, distances, cost_graph):
     return dict_cost_matrix, dict_paths
 
 
-# ## Compare the min distance path and the min cost path
+# Compare the min distance path and the min cost path
 def path_cost(path, angles, distances, information):
     cost = 0
     for i in range(1, len(path)):
         cost += energy_between_a_b(angles[(path[i-1], path[i])], distances[(path[i-1], path[i])], information)
 
     return cost
+
+
+# Specify the names of the functions to export
+__all__ = ["initialize_graph_information", "get_graph_information", "create_cost_graph",
+           "analyze_problem", "bellman_ford", "create_customer_graph", "path_cost"]

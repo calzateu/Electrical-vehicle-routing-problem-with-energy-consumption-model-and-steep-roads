@@ -33,3 +33,7 @@ def plot_scatter_angles(angles):
     plt.xlabel("Sequential Number")
     plt.ylabel("Angles")
     plt.show()
+
+
+# Specify the names of the functions to export
+__all__ = ["plot_places", "plot_histogram_angles", "plot_scatter_angles"]
